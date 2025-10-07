@@ -1,8 +1,8 @@
-🌍 GodsWork App — The JOULES Exchange System ⚡
+## GodsWork App — The JOULES Exchange System ⚡
 
 A decentralized socioeconomic platform for real-world task tracking, corporate accountability, and equitable compensation.
 
-✨ Overview
+## Overview
 
 GodsWork is a purpose-driven application built to measure, record, and reward human effort through a standardized unit of exchange called JOULES — a quantifiable representation of personal or corporate contribution.
 
@@ -10,10 +10,19 @@ The system enables individuals, organizations, and communities to log tasks, sel
 
 Each recorded Joule represents measurable energy expenditure or service provided, allowing fair trade, transparent accounting, and social synchronization across regions.
 
-⚙️ Core Concept: JOULES as a Unit of Exchange
-Function	Description
+## Core Concept: JOULES as a Unit of Exchange
+
+Function	Description: 
 Self-Reporting	Users record completed tasks or community contributions.
 Verification System	Reports can be verified by peers, corporate systems, or IoT-linked devices.
 Exchange of Joules	Users and corporations trade Joules in exchange for labor, innovation, or energy.
 Compensation Layer	Corporations compensate participants proportionally through the Joules system.
 Global Synchronization	Cross-compatible data handler aligns Joule data with region-specific databases.
+
+
+## Debugging : Current known issues
+- Service screen only deletes the top service and any other attempts to delete a service row results in the removal of the lower files on the user screen until refreshed by Global Refresh button. 
+- Joules rewards are not fully threshed out based on the appropriate calculations of the database. 
+- Text Boxes for username and password are sized to fit the screen so appear really large on PC. 
+- Aesthetic for profile is not fully implemented as the image upload option is limited to local use. 
+- Profile Theme may still have an updating issue. 
