@@ -1,0 +1,19 @@
+{
+  "username": "default_user",
+  "bio": "",
+  "anonymize": true,
+  "profile_pic": "LOGO.png",
+  "theme": {
+    "bg_color": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "text_color": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "bg_image": "backgroundlogo.png"
+  }
+}

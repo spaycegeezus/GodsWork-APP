@@ -1,0 +1,120 @@
+{
+    "Always Be Yourself. Semper Te Ate": {
+        "tasks": [],
+        "services": [
+            {
+                "timestamp": "2025-06-26T02:09:22.044951",
+                "category": "landscaping",
+                "description": "mowing",
+                "value": "2500",
+                "provider_id": "Always Be Yourself. Semper Te Ate"
+            },
+            {
+                "timestamp": "2025-06-26T02:14:05.561396",
+                "category": "",
+                "description": "",
+                "value": "0",
+                "provider_id": "Always Be Yourself. Semper Te Ate"
+            },
+            {
+                "timestamp": "2025-06-26T02:17:48.163684",
+                "category": "adfad",
+                "description": "adsfas",
+                "value": "2132",
+                "provider_id": "Always Be Yourself. Semper Te Ate"
+            },
+            {
+                "timestamp": "2025-06-26T12:00:29.260895",
+                "category": "1",
+                "description": "1",
+                "value": "1",
+                "provider_id": "Always Be Yourself. Semper Te Ate"
+            },
+            {
+                "timestamp": "2025-07-20T17:41:04.626788",
+                "category": "asdf",
+                "description": "df",
+                "value": "3242",
+                "provider_id": "Always Be Yourself. Semper Te Ate"
+            },
+            {
+                "timestamp": "2025-07-20T17:49:13.655815",
+                "category": "ewfs",
+                "description": "asdf",
+                "value": "2231",
+                "provider_id": "Always Be Yourself. Semper Te Ate"
+            }
+        ]
+    },
+    "241673": {
+        "tasks": [],
+        "services": [
+            {
+                "timestamp": "2025-06-26T02:15:20.701494",
+                "category": "adff",
+                "description": "adsfsad",
+                "value": "324234",
+                "provider_id": 241673
+            }
+        ]
+    },
+    "3": {
+        "tasks": [],
+        "services": [
+            {
+                "timestamp": "2025-06-28T02:25:28.956434",
+                "category": "adfadf",
+                "description": "afdasdf324432",
+                "value": "3243242",
+                "provider_id": "3"
+            }
+        ]
+    },
+    "services": [],
+    "tasks": [],
+    "": {
+        "balance": 2.3442546436556562e+23
+    },
+    "null": {
+        "balance": 249400
+    },
+    "anonymous": {
+        "balance": 75302
+    },
+    "chicken": {
+        "tasks": [],
+        "services": [
+            {
+                "timestamp": "2025-07-21T15:33:05.628935",
+                "category": "heavy lifting",
+                "description": "I lift heavy",
+                "value": "400",
+                "provider_id": "chicken"
+            }
+        ]
+    },
+    "150409": {
+        "tasks": [],
+        "services": [
+            {
+                "timestamp": "2025-07-23T16:32:25.862409",
+                "category": "Jogging",
+                "description": "not running",
+                "value": "3332",
+                "provider_id": 150409
+            }
+        ]
+    },
+    "default_user": {
+        "tasks": [],
+        "services": [
+            {
+                "timestamp": "2025-07-25T16:41:54.527434",
+                "category": "sports",
+                "description": "water sports",
+                "value": "200000",
+                "provider_id": "default_user"
+            }
+        ]
+    }
+}

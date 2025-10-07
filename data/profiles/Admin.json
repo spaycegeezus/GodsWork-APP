@@ -1,0 +1,33 @@
+{
+  "username": "Admin",
+  "bio": "",
+  "anonymize": false,
+  "profile_pic": "LOGO.png",
+  "theme": {
+    "bg_color": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "text_color": [
+      1,
+      1,
+      0,
+      1
+    ],
+    "bg_image": "LogoBackground.jpg"
+  },
+  "balance": 165213.0,
+  "tasks": [
+    {
+      "task_name": "Concrete Mixing & Pouring (small slab)",
+      "category": "Construction & Handyman Services",
+      "value": 115000.0,
+      "weight": 23.0,
+      "timestamp": "2025-10-07T16:30:45.619867",
+      "note": "Self-reported"
+    }
+  ],
+  "services": []
+}

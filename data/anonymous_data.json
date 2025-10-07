@@ -1,0 +1,44 @@
+{
+    "tasks": [
+        {
+            "timestamp": "2025-09-01 14:43:11",
+            "description": "1",
+            "category": "1",
+            "value": "1",
+            "requester_id": null
+        },
+        {
+            "task_name": "Processing Almonds per 1 kg",
+            "category": "Food Preparation",
+            "value": 300.0,
+            "weight": 1.0,
+            "timestamp": "2025-09-01T18:53:21.387931",
+            "note": "Self-reported"
+        },
+        {
+            "task_name": "Processing Almonds per 1 kg",
+            "category": "Food Preparation",
+            "value": 300.0,
+            "weight": 1.0,
+            "timestamp": "2025-09-01T18:54:32.696729",
+            "note": "Self-reported"
+        },
+        {
+            "task_name": "Processing Cherry Tomatoes per 1 kg",
+            "category": "Food Preparation",
+            "value": 40.0,
+            "weight": 1.0,
+            "timestamp": "2025-09-01T19:05:38.750528",
+            "note": "Self-reported"
+        },
+        {
+            "task_name": "Tilling per plant: Machine Assisted(per 30 Minute increment)",
+            "category": "Agriculture",
+            "value": 4100.0,
+            "weight": 20.5,
+            "timestamp": "2025-09-01T19:06:06.579833",
+            "note": "Self-reported"
+        }
+    ],
+    "services": []
+}

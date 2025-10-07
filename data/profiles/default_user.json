@@ -1,0 +1,30 @@
+{
+  "username": "default_user",
+  "bio": "",
+  "anonymize": false,
+  "profile_pic": "LOGO.png",
+  "theme": {
+    "bg_color": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "text_color": [
+      1.0,
+      1.0,
+      0.0
+    ],
+    "bg_image": "LogoBackground.jpg"
+  },
+  "tasks": [],
+  "services": [
+    {
+      "timestamp": "2025-10-07T21:02:52.771511",
+      "category": "I need to fix the delete logic",
+      "description": "Only deleting the top row",
+      "value": "10000",
+      "provider_id": "default_user"
+    }
+  ],
+  "balance": 250000
+}

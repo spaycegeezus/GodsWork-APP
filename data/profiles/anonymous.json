@@ -1,0 +1,43 @@
+{
+  "username": "Admin",
+  "bio": "I am trying",
+  "anonymize": false,
+  "profile_pic": "LOGO.png",
+  "theme": {
+    "bg_color": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "text_color": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "tasks": [],
+  "services": [
+    {
+      "timestamp": "2025-09-01T16:17:10.152037",
+      "category": "Why Do I even Try??",
+      "description": "I made a thing no one likes me though",
+      "value": "1",
+      "provider_id": "anonymous"
+    },
+    {
+      "timestamp": "2025-09-01T16:40:46.231190",
+      "category": "1",
+      "description": "1",
+      "value": "1",
+      "provider_id": "anonymous"
+    },
+    {
+      "timestamp": "2025-09-01T17:28:58.320794",
+      "category": "2",
+      "description": "2",
+      "value": "2",
+      "provider_id": "anonymous"
+    }
+  ],
+  "balance": 250000
+}

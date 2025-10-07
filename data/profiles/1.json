@@ -1,0 +1,65 @@
+{
+  "username": "1",
+  "bio": "",
+  "anonymize": false,
+  "profile_pic": "LOGO.png",
+  "theme": {
+    "bg_color": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "text_color": [
+      1,
+      1,
+      0,
+      1
+    ],
+    "bg_image": "LogoBackground.jpg"
+  },
+  "balance": 747627.0,
+  "tasks": [
+    {
+      "task_name": "Processing Cherry Tomatoes per 1 kg",
+      "category": "Food Preparation",
+      "value": 340.0,
+      "weight": 8.5,
+      "timestamp": "2025-10-07T16:29:30.769193",
+      "note": "Self-reported"
+    },
+    {
+      "task_name": "Coding - 1 Hour",
+      "category": "Mental and Artistic Tasks",
+      "value": 9000.0,
+      "weight": 20.0,
+      "timestamp": "2025-10-07T16:29:47.514903",
+      "note": "Self-reported"
+    },
+    {
+      "task_name": "Installing Door (Interior)",
+      "category": "Construction & Handyman Services",
+      "value": 21000.0,
+      "weight": 6.0,
+      "timestamp": "2025-10-07T21:07:24.988504",
+      "note": "Self-reported"
+    },
+    {
+      "task_name": "Concrete Mixing & Pouring (small slab)",
+      "category": "Construction & Handyman Services",
+      "value": 227500.0,
+      "weight": 45.5,
+      "timestamp": "2025-10-07T21:08:23.013202",
+      "note": "Self-reported"
+    },
+    {
+      "task_name": "Drywall Installation (per 4x8 sheet)",
+      "category": "Construction & Handyman Services",
+      "value": 40000.0,
+      "weight": 20.0,
+      "timestamp": "2025-10-07T21:13:04.674016",
+      "note": "Self-reported"
+    }
+  ],
+  "services": []
+}

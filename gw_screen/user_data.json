@@ -1,0 +1,21 @@
+{
+    "user123": {
+        "tasks": [],
+        "services": [
+            {
+                "description": "adfsafd",
+                "value": "3242",
+                "category": "adfa",
+                "timestamp": "2025-06-03 14:53:03",
+                "hours": "234-56745"
+            },
+            {
+                "description": "zdvzsdf",
+                "value": "33",
+                "category": "adsf",
+                "timestamp": "2025-06-03 15:30:15",
+                "hours": "325432"
+            }
+        ]
+    }
+}
