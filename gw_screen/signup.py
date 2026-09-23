@@ -49,41 +49,43 @@ class SignupScreen(Screen):
         from gw_screen.__init__ import get_db_path
         import bcrypt
         from utils.admin_vault import AdminVault
+
         vault = AdminVault()
         if not (vault.unlock_layer(1, os.getenv("LAYER1_PASS")) and
                 vault.unlock_layer(2, os.getenv("LAYER2_PASS")) and
                 vault.unlock_layer(3, os.getenv("PEPPER_PASS"))):
             self.message_label.text = "Signup system error: vault unlock failed."
             return False
-        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
-        self.conn.commit()
-        return True
-        with open("data/encrypted_pepper.txt", "r") as f:
-            encrypted_pepper = vault.encrypt_layer(3, some_pepper)
-        pepper = vault.decrypt_layer(3, encrypted_pepper)
+
+        pepper = os.getenv("PEPPER_SECRET", "default_pepper")  # same as login
+        hashed_pw = self.create_user(username, password, pepper)
 
         try:
-            encrypted = self.create_user(username, password, pepper)
-            conn = sqlite3.connect(get_db_path())
-            c = conn.cursor()
-            c.execute('''
+            # Ensure the table exists (should already, but safe)
+            self.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
-                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                username TEXT UNIQUE NOT NULL,
-                                password TEXT NOT NULL,
-                                balance REAL DEFAULT 250000       
-                            )
-                        ''')
-            c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, encrypted))
-            conn.commit()
-            conn.close()
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    balance REAL DEFAULT 250000
+                )
+            ''')
+
+            # Attempt to insert the new user
+            self.cursor.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (username, hashed_pw)
+            )
+            self.conn.commit()
             return True
+
         except sqlite3.IntegrityError:
             self.message_label.text = "Username already exists."
+            return False
+
         except Exception as e:
             self.message_label.text = f"Signup error: {e}"
-        return False
+            return False
 
     @staticmethod
     def create_user(username, password, pepper):
@@ -101,8 +103,3 @@ class SignupScreen(Screen):
             self.message_label.text = "Username and password required."
         elif password != confirm_password:
             self.message_label.text = "Passwords do not match."
-
-
-
-
-

@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 import sqlite3
+from eth_hash.auto import keccak
 from abc import ABC, abstractmethod
 from gw_screen.adapters.json_adapter import JSONAdapter
 from gw_screen.adapters.sqlite_adapter import SQLiteAdapter
@@ -297,14 +298,6 @@ PREDEFINED_TASKS = {
 
 
 }
-import os
-import json
-import sqlite3
-from datetime import datetime
-
-# Define these constants at the top of your file
-ANON_FILE = "data/anonymous.json"
-USER_FILE = "data/users.json"
 
 class AdapterFactory:
     @staticmethod
@@ -322,7 +315,12 @@ class AdapterFactory:
             raise ValueError(f"Unknown backend type: {backend_type}")
 
 
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, '..', 'data')
+PROFILES_DIR = os.path.join(DATA_DIR, 'profiles')
 ACCOUNTS_PATH = "accounts.json"
+LEDGER_PATH = os.path.join(DATA_DIR, "data_ledger.json")
 
 class DataHandler:
     def __init__(self, backend='json', **kwargs):
@@ -480,9 +478,14 @@ class DataHandler:
         self.save_user_profile(user_id, profile)
 
     def add_to_balance(self, user_id, amount):
-        """Increment a user's balance by amount (can be negative)."""
         balance = self.get_user_balance(user_id)
-        self.set_user_balance(user_id, balance + amount)
+        new_balance = balance + amount
+        if new_balance < 0:
+            raise ValueError(f"Insufficient balance: {user_id} has {balance}, tried to subtract {amount}, Please seek a Creation Station at your earliest convenience.")
+
+        self.set_user_balance(user_id, new_balance)
+        print(f"Balance update: {user_id} {amount:+}J = {new_balance}J")
+        return new_balance
 
     def load_user_profile(self, user_id):
         os.makedirs("data/profiles", exist_ok=True)
@@ -490,7 +493,8 @@ class DataHandler:
 
         if not os.path.exists(path):
             profile = {
-                "username": user_id,
+                "username": "root",
+                "admin": False,
                 "bio": "",
                 "anonymize": False,
                 "profile_pic": "LOGO.png",
@@ -499,7 +503,7 @@ class DataHandler:
                     "text_color": [1, 1, 0, 1],
                     "bg_image": "LogoBackground.jpg"
                 },
-                "balance": 250000,  # This should be 250000, not 0
+                "balance": 250000,
                 "tasks": [],
                 "services": []
             }
@@ -511,12 +515,16 @@ class DataHandler:
 
         profile.setdefault("tasks", [])
         profile.setdefault("services", [])
-        profile.setdefault("balance", 250000)  # And here too
+        profile.setdefault("balance", 250000)
         profile.setdefault("theme", {
             "bg_color": [1, 1, 1, 1],
             "text_color": [1, 1, 0, 1],
             "bg_image": "LogoBackground.jpg"
         })
+
+        if user_id.lower() == 'admin':
+            profile["admin"] = True
+
         return profile
 
     def save_user_profile(self, user_id, profile_data):
@@ -535,14 +543,103 @@ class DataHandler:
             data["services"] = new_services
             self._save_data(ANON_FILE, data)
 
+    def rebuild_balances_from_ledger(self):
+        balances = {}
+
+        for tx in self.load_ledger():
+            if tx["from"] not in (None, "system"):
+                balances[tx["from"]] = balances.get(tx["from"], 0) - tx["amount"]
+            balances[tx["to"]] = balances.get(tx["to"], 0) + tx["amount"]
+
+        for user, bal in balances.items():
+            self.set_user_balance(user, bal)
+
+    def get_all_users(self):
+        """Return list of usernames from profile files and SQLite database."""
+        users = set()
+
+        # From profile files
+        profiles_dir = os.path.join(DATA_DIR, 'profiles')
+        if os.path.exists(profiles_dir):
+            for filename in os.listdir(profiles_dir):
+                if filename.endswith('.json'):
+                    users.add(filename[:-5])
+
+        # From SQLite database (login accounts)
+        try:
+            from gw_screen import __init__ as gw_init
+            conn = sqlite3.connect(gw_init.get_db_path())
+            cursor = conn.cursor()
+            cursor.execute("SELECT username FROM users")
+            for row in cursor.fetchall():
+                users.add(row[0])
+            conn.close()
+        except:
+            pass
+
+        return sorted(list(users))
+
+    def delete_user(self, user_id):
+        """Delete user from profiles and SQLite database."""
+        # Delete profile JSON
+        profile_path = os.path.join(DATA_DIR, 'profiles', f"{user_id}.json")
+        if os.path.exists(profile_path):
+            os.remove(profile_path)
+
+        # Delete from SQLite
+        try:
+            from gw_screen import __init__ as gw_init
+            conn = sqlite3.connect(gw_init.get_db_path())
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM users WHERE username = ?", (user_id,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error deleting user from DB: {e}")
+
+    def update_user_profile(self, user_id, updates: dict):
+        profile = self.load_user_profile(user_id)
+        for key, value in updates.items():
+            if key in ("username",):  # prevent renaming for now
+                continue
+            profile[key] = value
+        self.save_user_profile(user_id, profile)
+
+    def verify_balance(self, user_id):
+        profile = self.load_user_profile(user_id)
+        current_balance = profile.get("balance", [])
+
+        # Load all transactions for this user
+        if os.path.exists(LEDGER_PATH):
+            with open(LEDGER_PATH, "r") as f:
+                ledger = json.load(f)
+
+        # Calculate expected balance from transactions
+        expected = 250000  # Starting balance
+
+        for tx in ledger:
+            if tx.get("to") == user_id:
+                expected += tx.get("amount", 0)
+            if tx.get("from") == user_id:
+                expected -= tx.get("amount", 0)
+
+        if current_balance != expected:
+            print(f"WARNING: Balance mismatch for {user_id}")
+            print(f"  Current: {current_balance}, Expected: {expected}")
+
+            if abs(current_balance - expected) > 100:  # Small tolerance
+                print(f"  Correcting to {expected}")
+                self.set_user_balance(user_id, expected)
+
+        return current_balance == expected
+
     def log_self_reported_task(self, category, description, joules, user_id=None, kilograms=0, minutes=0):
-        """Log a task either to a user's profile or the anonymous file."""
         task_data = {
             "category": category,
             "description": description,
             "joules": joules,
             "weight": kilograms,
-            "time or units": minutes,
+            "time_or_units": minutes,  # Fixed key name
             "timestamp": datetime.utcnow().isoformat()
         }
 
@@ -556,3 +653,89 @@ class DataHandler:
             data.setdefault("tasks", [])
             data["tasks"].append(task_data)
             self._save_data(ANON_FILE, data)
+
+    def log_admin_action(self, admin_id, target_user, action_type, details):
+        """Append an admin action to the ledger with a keccak hash.
+        Used for edits that are not balance changes (profile/service/task edits).
+        """
+        now = datetime.utcnow().isoformat()
+        payload = f"admin:{admin_id or 'unknown'}->{target_user}:{action_type}@{now}"
+        tx_hash = keccak(payload.encode()).hex()
+
+        entry = {
+            "from": admin_id or "admin",
+            "to": target_user,
+            "amount": 0,  # balance unchanged
+            "timestamp": now,
+            "hash": tx_hash,
+            "type": "admin_edit",
+            "metadata": {
+                "action": action_type,
+                "details": details,
+            },
+        }
+
+        os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
+        ledger = []
+        if os.path.exists(LEDGER_PATH) and os.path.getsize(LEDGER_PATH) > 0:
+            try:
+                with open(LEDGER_PATH, "r") as f:
+                    ledger = json.load(f)
+                if not isinstance(ledger, list):
+                    ledger = []
+            except (json.JSONDecodeError, ValueError):
+                ledger = []
+
+        ledger.append(entry)
+        with open(LEDGER_PATH, "w") as f:
+            json.dump(ledger, f, indent=2)
+
+        print(f"Admin action logged: {action_type} on {target_user} [{tx_hash[:12]}]")
+        return entry
+
+    def update_balance_with_transaction(self, from_user, to_user, amount, transaction_type="transfer", metadata=None):
+        # Update balances
+        if from_user:
+            from_balance = self.get_user_balance(from_user)
+            self.set_user_balance(from_user, from_balance - amount)
+        if to_user:
+            to_balance = self.get_user_balance(to_user)
+            self.set_user_balance(to_user, to_balance + amount)
+
+        # Build transaction entry
+        now = datetime.utcnow().isoformat()
+        tx_data = f"{from_user or 'system'}->{to_user}:{amount}@{now}"
+        tx_hash = keccak(tx_data.encode()).hex()
+
+        entry = {
+            "from": from_user or "system",
+            "to": to_user,
+            "amount": amount,
+            "timestamp": now,
+            "hash": tx_hash,
+            "type": transaction_type,
+            "metadata": metadata or {}
+        }
+
+        # Write to ledger safely
+        os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
+
+        # Load existing ledger or start empty
+        if os.path.exists(LEDGER_PATH) and os.path.getsize(LEDGER_PATH) > 0:
+            try:
+                with open(LEDGER_PATH, "r") as f:
+                    ledger = json.load(f)
+                if not isinstance(ledger, list):
+                    ledger = []
+            except (json.JSONDecodeError, ValueError):
+                ledger = []
+        else:
+            ledger = []
+
+        ledger.append(entry)
+
+        with open(LEDGER_PATH, "w") as f:
+            json.dump(ledger, f, indent=2)
+
+        print(f"Ledger updated: {amount}J from {from_user} to {to_user}")
+        return entry

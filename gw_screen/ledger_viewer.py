@@ -10,15 +10,13 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ListProperty, StringProperty
 from gw_screen import get_db_path
 from gw_screen.account import AccountScreen
-from utils.data_handler import DataHandler  # Import your DataHandler
+from utils.data_handler import DataHandler, LEDGER_PATH, PROFILES_DIR
 import json
 import os
 import csv
 import datetime
 
-LEDGER_PATH = "data_ledger.json"
 TASKS_PATH = "data/anonymous.json"
-PROFILES_DIR = "data/profiles"
 
 
 class LedgerViewerScreen(Screen):
@@ -130,8 +128,11 @@ class LedgerViewerScreen(Screen):
                 return "[color=FFD700]"  # Yellow for flagged/large transactions
             elif entry.get("to") == self.current_user:
                 return "[color=32CD32]"  # Green (incoming to current user)
+            elif entry.get("type") == "admin_edit":
+                return "[color=8000FF]"  # 🟣 Purple = Authority
             else:
                 return "[color=FF4500]"  # Red (outgoing from current user)
+
 
     def format_task_entry(self, task):
         """Format a task for display - matches account.py task structure"""
@@ -154,15 +155,25 @@ class LedgerViewerScreen(Screen):
         )
 
     def format_transaction_entry(self, transaction):
-        """Format a transaction for display - matches account.py transaction structure"""
         from_user = str(hash(transaction['from'])) % 1000000 if self.anonymize else transaction['from']
         to_user = str(hash(transaction['to'])) % 1000000 if self.anonymize else transaction['to']
-        amount = transaction.get("amount", 0)
         timestamp = transaction.get("timestamp", "")
         tx_hash = transaction.get("hash", "")[:12]
-
         color_tag = self.color_for_entry(transaction, "transaction")
 
+        if transaction.get("type") == "admin_edit":
+            meta = transaction.get("metadata", {}) or {}
+            action = meta.get("action", "edit")
+            details = json.dumps(meta.get("details", {}))
+            if len(details) > 80:
+                details = details[:77] + "..."
+            return (
+                f"{color_tag}[ADMIN] {from_user} → {to_user} | {action}[/color]\n"
+                f"Details: {details}\n"
+                f"Hash: {tx_hash}... | Time: {timestamp}"
+            )
+
+        amount = transaction.get("amount", 0)
         return (
             f"{color_tag}[TX] {from_user} → {to_user} | {amount} J[/color]\n"
             f"Hash: {tx_hash}... | Time: {timestamp}"
@@ -247,53 +258,58 @@ class LedgerViewerScreen(Screen):
         print(f"Ledger exported to {filename}")
 
     def load_tasks(self):
-        """Load tasks using DataHandler to match account.py"""
+        """Load tasks from anonymous file and all user profile files."""
         all_tasks = []
 
-        # Load tasks from DataHandler (matches account.py approach)
+        # 1. Load anonymous tasks
         try:
-            # Load anonymous tasks
             anonymous_tasks = self.data_handler.load_tasks(user_id=None)
             for task in anonymous_tasks:
                 task['type'] = 'task'
                 task['user_id'] = 'anonymous'
             all_tasks.extend(anonymous_tasks)
-
-            # Load user tasks
-            user_tasks = self.data_handler.load_all_entries(user_id=None)
-            for task in user_tasks:
-                if task.get('type') == 'task' or 'task_name' in task:
-                    task['type'] = 'task'
-                    if 'user_id' not in task:
-                        task['user_id'] = 'unknown'
-            all_tasks.extend([t for t in user_tasks if t.get('type') == 'task'])
-
         except Exception as e:
-            print(f"Error loading tasks: {e}")
+            print(f"Error loading anonymous tasks: {e}")
+
+        # 2. Load tasks from each user profile
+        profiles_dir = os.path.join(PROFILES_DIR)  # adjust if your path is absolute
+        if os.path.exists(profiles_dir):
+            for filename in os.listdir(profiles_dir):
+                if filename.endswith(".json"):
+                    user_id = filename[:-5]  # remove .json extension
+                    try:
+                        profile = self.data_handler.load_user_profile(user_id)
+                        tasks = profile.get("tasks", [])
+                        for task in tasks:
+                            task['type'] = 'task'
+                            task['user_id'] = user_id
+                        all_tasks.extend(tasks)
+                    except Exception as e:
+                        print(f"Error loading tasks for {user_id}: {e}")
 
         return all_tasks
 
     def load_transactions(self):
-        """Load transactions from ledger file - matches account.py format"""
         if not os.path.exists(LEDGER_PATH):
+            print(f"Ledger file not found at {LEDGER_PATH}")
             return []
 
         try:
             with open(LEDGER_PATH, "r") as f:
                 ledger = json.load(f)
 
-            # Add type identifier and ensure proper format
             for transaction in ledger:
-                transaction['type'] = 'transaction'
-                # Ensure all required fields exist
+                transaction.setdefault('type', 'transaction')
                 transaction.setdefault('from', 'unknown')
                 transaction.setdefault('to', 'unknown')
                 transaction.setdefault('amount', 0)
                 transaction.setdefault('timestamp', '')
                 transaction.setdefault('hash', '')
 
+            print(f"Loaded {len(ledger)} transactions from {LEDGER_PATH}")
             return ledger
-        except (json.JSONDecodeError, FileNotFoundError):
+        except Exception as e:
+            print(f"Error reading ledger: {e}")
             return []
 
     def load_combined_data(self, *args):

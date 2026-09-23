@@ -5,13 +5,15 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import hashlib
 import json
+from datetime import datetime
+from eth_hash.auto import keccak
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
-from utils.data_handler import DataHandler
+from utils.data_handler import DataHandler, LEDGER_PATH
 
 class ServiceTaskReceipt(Screen):
     def __init__(self, user_id, category, description, value):
@@ -123,6 +125,7 @@ class PaymentWindow(Popup):
 
         self.content = layout
 
+    # In service_task_receipt.py - MODIFY JUST THIS METHOD
     def transfer_joules(self, _):
         value = int(self.service_data['value'])
 
@@ -130,14 +133,18 @@ class PaymentWindow(Popup):
             self.error_label.text = "Cannot transfer JOULES to your own account."
             return
 
+        # USE add_to_balance instead of set_user_balance
         payer_balance = self.data_handler.get_user_balance(self.user_id, default=250000)
-        recipient_balance = self.data_handler.get_user_balance(self.recipient_id, default=0)
 
         if payer_balance >= value:
-            self.data_handler.set_user_balance(self.user_id, payer_balance - value)
-            self.data_handler.set_user_balance(self.recipient_id, recipient_balance + value)
+            # FIXED: Use consistent method
+            self.data_handler.add_to_balance(self.user_id, -value)
+            self.data_handler.add_to_balance(self.recipient_id, value)
 
-            # Safe fallback for missing keys
+            # ALSO LOG TO LEDGER (add this)
+            self._log_transaction_to_ledger(value)
+
+            # Rest of your existing code...
             description = self.service_data.get('description') or self.service_data.get('task_name', 'No description')
 
             receipt = ServiceTaskReceipt(
@@ -156,5 +163,33 @@ class PaymentWindow(Popup):
         else:
             self.error_label.text = "Insufficient JOULES balance."
 
+    def _log_transaction_to_ledger(self, amount):
+        timestamp = datetime.utcnow().isoformat()
+        tx_data = f"{self.user_id}->{self.recipient_id}:{amount}@{timestamp}"
+        tx_hash = keccak(tx_data.encode()).hex()
 
+        entry = {
+            "from": self.user_id,
+            "to": self.recipient_id,
+            "amount": amount,
+            "timestamp": timestamp,
+            "hash": tx_hash,
+            "type": "payment_window_transfer",
+        }
 
+        # uses the module-level LEDGER_PATH imported from utils.data_handler
+        os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
+
+        if os.path.exists(LEDGER_PATH):
+            with open(LEDGER_PATH, "r") as f:
+                ledger = json.load(f)
+            if not isinstance(ledger, list):
+                ledger = []
+        else:
+            ledger = []
+
+        ledger.append(entry)
+        with open(LEDGER_PATH, "w") as f:
+            json.dump(ledger, f, indent=2)
+
+        print(f"Ledger updated: {amount}J from {self.user_id} to {self.recipient_id}")

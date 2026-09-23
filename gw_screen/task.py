@@ -9,7 +9,7 @@ from kivy.uix.popup import Popup
 from datetime import datetime
 from kivy.uix.label import Label
 from gw_screen.service_task_receipt import PaymentWindow
-from utils.data_handler import DataHandler
+from utils.data_handler import DataHandler, LEDGER_PATH
 from utils.ui_components import ServiceItem
 
 class TaskScreen(Screen):
