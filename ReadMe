@@ -21,8 +21,6 @@ Global Synchronization	Cross-compatible data handler aligns Joule data with regi
 
 
 ## Debugging : Current known issues
-- Service screen only deletes the top service and any other attempts to delete a service row results in the removal of the lower files on the user screen until refreshed by Global Refresh button. 
 - Joules rewards are not fully threshed out based on the appropriate calculations of the database. 
-- Text Boxes for username and password are sized to fit the screen so appear really large on PC. 
 - Aesthetic for profile is not fully implemented as the image upload option is limited to local use. 
 - Profile Theme may still have an updating issue. 
